@@ -4,13 +4,25 @@
 {% block body %}
     <h3 id="header"></h3>
 
-    <div id="all-view">
-        this is the future all posts view
+    <div id="profile-view">
+        this is the future profile view
     </div>
 
-    <div id="following-view">
-        this is the future following view
+    <div id="posts-view">
+        <form action="{% url 'index' %}" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input class="btn btn-primary" type="submit" value="Post">
+        </form>
+        <div id="all-view">
+            this is the future all posts view
+        </div>
+        <div id="following-view">
+            this is the future following view
+        </div>
     </div>
+
+   
 {% endblock %}
 
 {% block script %}

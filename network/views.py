@@ -5,10 +5,19 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from .models import User
+from .forms import NewPostForm
 
 
 def index(request):
-    return render(request, "network/index.html")
+    if request.method == 'POST':
+        form = NewPostForm(request.POST)
+        if form.is_valid():
+            new = form.save(commit=False)
+            new.user_id = request.user
+            new.save()
+    return render(request, "network/index.html", {
+        "form": NewPostForm()
+    })
 
 
 def login_view(request):
