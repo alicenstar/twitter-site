@@ -20,8 +20,15 @@ function load_posts(param) {
         document.querySelector('#all-view').style.display = 'block';
         document.querySelector('#following-view').style.display = 'none';
 
-
+        fetch(`/posts/${param}`)
+        .then(response => response.json())
+        .then(posts => posts.forEach(post => {
+            document.querySelector('#all-view').innerHTML += `
+                <p>${post.username}</p>
+                <p>${post.content}</p>`
+        }));
     }
+
     if (param === 'following') {
         document.querySelector('#header').innerHTML = 'Following';
 
@@ -30,6 +37,12 @@ function load_posts(param) {
         document.querySelector('#posts-view').style.display = 'block';
         document.querySelector('#all-view').style.display = 'none';
         document.querySelector('#following-view').style.display = 'block';
+
+        fetch(`/posts/${param}`)
+        .then(response => response.json())
+        .then(posts => posts.forEach(post => {
+            document.querySelector('#following-view').innerHTML += `<p>${post}</p>`
+        }));
     }
 }
 

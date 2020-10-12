@@ -1,10 +1,12 @@
+import json
 from django.contrib.auth import authenticate, login, logout
+from django.core import serializers
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Post
 from .forms import NewPostForm
 
 
@@ -19,6 +21,16 @@ def index(request):
         "form": NewPostForm()
     })
 
+def get_posts(request, param):
+    # Filter posts based on parameter
+    if param == 'all':
+        posts = Post.objects.all().order_by('-timestamp')
+    elif param == 'following':
+        user = User.objects.get(id=request.user)
+        posts = user.posts
+        print(posts)
+
+    return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def login_view(request):
     if request.method == "POST":
