@@ -1,5 +1,18 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block body %}
-    TODO
+    <h3 id="header"></h3>
+
+    <div id="all-view">
+        this is the future all posts view
+    </div>
+
+    <div id="following-view">
+        this is the future following view
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/script.js'%}"></script>
 {% endblock %}
