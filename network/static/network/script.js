@@ -23,9 +23,11 @@ function load_posts(param) {
         fetch(`/posts/${param}`)
         .then(response => response.json())
         .then(posts => posts.forEach(post => {
-            document.querySelector('#all-view').innerHTML += `
-                <p>${post.username}</p>
-                <p>${post.content}</p>`
+            document.querySelector('#all-view').innerHTML += `<div class="post">
+                                                                <p>${post.username}</p>
+                                                                <p>${post.timestamp}</p>
+                                                                <p>${post.content}</p>
+                                                            </div>`;
         }));
     }
 
@@ -41,7 +43,11 @@ function load_posts(param) {
         fetch(`/posts/${param}`)
         .then(response => response.json())
         .then(posts => posts.forEach(post => {
-            document.querySelector('#following-view').innerHTML += `<p>${post}</p>`
+            document.querySelector('#following-view').innerHTML += `<div class="post">
+                                                                        <p>${post.username}</p>
+                                                                        <p>${post.timestamp}</p>
+                                                                        <p>${post.content}</p>
+                                                                    </div>`;
         }));
     }
 }
@@ -54,5 +60,4 @@ function load_profile() {
     // Display user profile view and hide others
     document.querySelector('#profile-view').style.display = 'block';
     document.querySelector('#posts-view').style.display = 'none';
-    // document.querySelector('#following-view').style.display = 'none';
 }
