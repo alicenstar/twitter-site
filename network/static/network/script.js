@@ -24,9 +24,9 @@ function load_posts(param) {
         .then(response => response.json())
         .then(posts => posts.forEach(post => {
             document.querySelector('#all-view').innerHTML += `<div class="post">
-                                                                <p>${post.username}</p>
-                                                                <p>${post.timestamp}</p>
-                                                                <p>${post.content}</p>
+                                                                <p class="username">${post.username}</p>
+                                                                <p class="timestamp">${post.timestamp}</p>
+                                                                <p class="content">${post.content}</p>
                                                             </div>`;
         }));
     }
@@ -44,9 +44,9 @@ function load_posts(param) {
         .then(response => response.json())
         .then(posts => posts.forEach(post => {
             document.querySelector('#following-view').innerHTML += `<div class="post">
-                                                                        <p>${post.username}</p>
-                                                                        <p>${post.timestamp}</p>
-                                                                        <p>${post.content}</p>
+                                                                        <p class="username">${post.username}</p>
+                                                                        <p class="timestamp">${post.timestamp}</p>
+                                                                        <p class="content">${post.content}</p>
                                                                     </div>`;
         }));
     }
