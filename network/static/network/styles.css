@@ -6,6 +6,7 @@
 /* NEW POST FORM STYLING */
 form {
     border: 1px solid lightgray;
+    border-radius: 4px;
     width: 50%;
     padding: 16px;
     margin-bottom: 16px;
@@ -13,6 +14,8 @@ form {
 
 textarea {
     resize: none;
+    border: 1px solid darkgray;
+    border-radius: 4px;
 }
 
 label[for='id_content'] {
@@ -36,6 +39,7 @@ label[for='id_content'] {
 /* POST STYLING */
 .post {
     border: 1px solid lightgray;
+    border-radius: 4px;
     width: 50%;
     margin: 10px 0;
     padding: 16px;
@@ -52,6 +56,11 @@ label[for='id_content'] {
 }
 
 .content {
+    padding: 0;
+    margin-bottom: 10px 0;
+}
+
+.likes {
     padding: 0;
     margin: 0;
 }

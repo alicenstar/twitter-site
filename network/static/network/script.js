@@ -23,11 +23,13 @@ function load_posts(param) {
         fetch(`/posts/${param}`)
         .then(response => response.json())
         .then(posts => posts.forEach(post => {
+            if (!post.num_likes) { post.num_likes = 0; }
             document.querySelector('#all-view').innerHTML += `<div class="post">
-                                                                <p class="username">${post.username}</p>
-                                                                <p class="timestamp">${post.timestamp}</p>
-                                                                <p class="content">${post.content}</p>
-                                                            </div>`;
+                <p class="username">${post.username}</p>
+                <p class="timestamp">${post.timestamp}</p>
+                <p class="content">${post.content}</p>
+                <p class="likes">❤️ ${post.num_likes}</p>
+                </div>`;
         }));
     }
 
@@ -43,11 +45,13 @@ function load_posts(param) {
         fetch(`/posts/${param}`)
         .then(response => response.json())
         .then(posts => posts.forEach(post => {
+            if (!post.num_likes) { post.num_likes = 0; }
             document.querySelector('#following-view').innerHTML += `<div class="post">
-                                                                        <p class="username">${post.username}</p>
-                                                                        <p class="timestamp">${post.timestamp}</p>
-                                                                        <p class="content">${post.content}</p>
-                                                                    </div>`;
+                <p class="username">${post.username}</p>
+                <p class="timestamp">${post.timestamp}</p>
+                <p class="content">${post.content}</p>
+                <p class="likes">❤️ ${post.num_likes}</p>
+                </div>`;
         }));
     }
 }

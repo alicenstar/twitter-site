@@ -8,6 +8,6 @@ urlpatterns = [
     path("logout", views.logout_view, name="logout"),
     path("register", views.register, name="register"),
 
-    # Future API paths will go here
+    # API paths
     path("posts/<str:param>", views.get_posts, name='posts')
 ]
