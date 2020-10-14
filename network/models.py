@@ -1,7 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import Count
-
 
 
 class User(AbstractUser):
@@ -28,5 +26,5 @@ class Follow(models.Model):
     is_following = models.ForeignKey(User, related_name="following", on_delete=models.CASCADE)
     followed_by = models.ForeignKey(User, related_name="followers", on_delete=models.CASCADE)
 
-# TODO
+# TO DO
 # add comments functionality

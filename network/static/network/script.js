@@ -59,21 +59,36 @@ function load_profile(evt) {
     document.querySelector('#posts-view').style.display = 'none';
 
     // Clear profile view before populating
-    document.querySelector('#profile-view').innerHTML = '';
+    var profile_element = document.querySelector('#profile-body');
+    profile_element.innerHTML = '';
 
     fetch(`/users/${username}`)
     .then(response => response.json())
     .then(data => {
         let profile = data.profile;
         let posts = data.posts;
-        let profile_element = document.querySelector('#profile-view');
-        profile_element.innerHTML += `<p>Followers: ${profile.followers}</p>
-            <p>Following: ${profile.following}</p>`;
+        let is_following = false;
+
+        profile.followers.forEach(follower => {
+            if (data.current_user === follower.is_following_id) {
+                is_following = true;
+            }
+        });
+        if (is_following === true) {
+            profile_element.innerHTML += `<button class="btn btn-primary follow" type="button">Unfollow</button>`;
+        } else if ((profile.id != data.current_user) && is_following === false) {
+            profile_element.innerHTML += `<button class="btn btn-primary follow" type="button">Follow</button>`;
+        }
+
+        // if (data.current_user in profile.followers)
+        profile_element.innerHTML += `<p>Followers: ${profile.followers.length}</p>
+            <p>Following: ${profile.following.length}</p>`;
         posts.forEach(post => populate_posts(profile_element, post));
     })
 }
 
 function populate_posts(element, post) {
+    
     if (!post.num_likes) { post.num_likes = 0; }
     element.innerHTML += `<div class="post">
                 <p class="username">${post.username}</p>

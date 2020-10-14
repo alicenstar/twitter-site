@@ -26,23 +26,27 @@ def get_posts(request, param):
     if param == 'all':
         posts = Post.objects.all().order_by('-timestamp').annotate(num_likes=Count('likes'))
     elif param == 'following':
-        user = User.objects.get(id=request.user)
+        user = User.objects.get(id=request.user.id)
         # following_users = user.following
         posts = Post.objects.filter(user_id__in=user.following)
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def get_profile(request, username):
+    # current_user = User.objects.get(id=request.user)
+    current_user = User.objects.get(id=request.user.id)
     user_profile = User.objects.get(username=username)
     user_posts = Post.objects.filter(user_id=user_profile.id
                                     ).annotate(num_likes=Count('likes')
                                     ).order_by('-timestamp')
     response_data = {
         'profile': {
+            'id': user_profile.id,
             'username': user_profile.username,
-            'following': user_profile.following.count(),
-            'followers': user_profile.followers.count()
+            'following': list(user_profile.following.all().values()),
+            'followers': list(user_profile.followers.all().values())
         },
-        'posts': [post.serialize() for post in user_posts]
+        'posts': [post.serialize() for post in user_posts],
+        'current_user': current_user.id
     }
     return JsonResponse(response_data, safe=False)
 
