@@ -27,8 +27,24 @@ def get_posts(request, param):
         posts = Post.objects.all().order_by('-timestamp').annotate(num_likes=Count('likes'))
     elif param == 'following':
         user = User.objects.get(id=request.user)
-        posts = user.posts
+        # following_users = user.following
+        posts = Post.objects.filter(user_id__in=user.following)
     return JsonResponse([post.serialize() for post in posts], safe=False)
+
+def get_profile(request, username):
+    user_profile = User.objects.get(username=username)
+    user_posts = Post.objects.filter(user_id=user_profile.id
+                                    ).annotate(num_likes=Count('likes')
+                                    ).order_by('-timestamp')
+    response_data = {
+        'profile': {
+            'username': user_profile.username,
+            'following': user_profile.following.count(),
+            'followers': user_profile.followers.count()
+        },
+        'posts': [post.serialize() for post in user_posts]
+    }
+    return JsonResponse(response_data, safe=False)
 
 def login_view(request):
     if request.method == "POST":

@@ -3,6 +3,10 @@
     margin: 0;
 }
 
+#profile {
+    font-weight: bold;
+}
+
 /* NEW POST FORM STYLING */
 form {
     border: 1px solid lightgray;

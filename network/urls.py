@@ -9,5 +9,6 @@ urlpatterns = [
     path("register", views.register, name="register"),
 
     # API paths
-    path("posts/<str:param>", views.get_posts, name='posts')
+    path("posts/<str:param>", views.get_posts, name='posts'),
+    path("users/<str:username>", views.get_profile, name='profile')
 ]
