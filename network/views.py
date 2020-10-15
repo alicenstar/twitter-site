@@ -32,8 +32,10 @@ def get_posts(request, param):
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def get_profile(request, username):
-    # current_user = User.objects.get(id=request.user)
-    current_user = User.objects.get(id=request.user.id)
+    # current_user = User.objects.get(id=request.user.id)
+    if request.user == 'AnonymousUser':
+        current_user = None
+    print(request.user)
     user_profile = User.objects.get(username=username)
     user_posts = Post.objects.filter(user_id=user_profile.id
                                     ).annotate(num_likes=Count('likes')
@@ -46,7 +48,7 @@ def get_profile(request, username):
             'followers': list(user_profile.followers.all().values())
         },
         'posts': [post.serialize() for post in user_posts],
-        'current_user': current_user.id
+        # 'current_user': current_user.id
     }
     return JsonResponse(response_data, safe=False)
 

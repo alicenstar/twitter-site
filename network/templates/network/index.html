@@ -5,19 +5,18 @@
     <h3 id="header"></h3>
 
     <div id="profile-view">
-        {% if user.is_authenticated %}
-
-        {% endif %}
         <div id="profile-body">
         </div>
     </div>
 
     <div id="posts-view">
-        <form action="{% url 'index' %}" method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <input id="post-button" class="btn btn-primary" type="submit" value="Post">
-        </form>
+        {% if user.is_authenticated %}
+            <form action="{% url 'index' %}" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input id="post-button" class="btn btn-primary" type="submit" value="Post">
+            </form>
+        {% endif %}
 
         <div id="all-view">
         </div>

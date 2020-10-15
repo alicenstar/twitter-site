@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Use nav to toggle between views
-    document.querySelector('#profile').addEventListener('click', evt => load_profile(evt));
+    if (document.querySelector('#profile')) {
+        document.querySelector('#profile').addEventListener('click', evt => load_profile(evt));
+        document.querySelector('#following').addEventListener('click', () => load_posts('following'));
+    }
     document.querySelector('#all').addEventListener('click', () => load_posts('all'));
-    document.querySelector('#following').addEventListener('click', () => load_posts('following'));
 
     // By default, load all posts
     load_posts('all');
@@ -25,6 +27,7 @@ function load_posts(param) {
         .then(response => response.json())
         .then(posts => posts.forEach(post => populate_posts(all_element, post)))
         .then(() => {
+            // Add event listeners to username on each post 
             let post_usernames = document.querySelectorAll('.username');
             post_usernames.forEach(username => {
                 username.addEventListener('click', evt => load_profile(evt));
