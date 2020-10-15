@@ -5,10 +5,11 @@
     <h3 id="header"></h3>
 
     <div id="profile-view">
+        {% if user.is_authenticated %}
+            <button class="btn btn-primary follow" type="button"></button>
+        {% endif %}
         <div id="profile-body">
-            {% if user.is_authenticated %}
-                <button class="btn btn-primary follow" type="button"></button>
-            {% endif %}
+            
         </div>
     </div>
 

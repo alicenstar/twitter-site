@@ -23,8 +23,10 @@ class Like(models.Model):
     post_id = models.ForeignKey(Post, related_name="likes", on_delete=models.CASCADE)
 
 class Follow(models.Model):
-    is_following = models.ForeignKey(User, related_name="following", on_delete=models.CASCADE)
-    followed_by = models.ForeignKey(User, related_name="followers", on_delete=models.CASCADE)
+    # The user being followed
+    being_followed = models.ForeignKey(User, related_name="followers", on_delete=models.CASCADE)
+    # The user who is following
+    followed_by = models.ForeignKey(User, related_name="following", on_delete=models.CASCADE)
 
 # TO DO
 # add comments functionality
