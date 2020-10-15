@@ -6,6 +6,9 @@
 
     <div id="profile-view">
         <div id="profile-body">
+            {% if user.is_authenticated %}
+                <button class="btn btn-primary follow" type="button"></button>
+            {% endif %}
         </div>
     </div>
 

@@ -1,20 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Use nav to toggle between views
+    // Checks if elements exist (user is logged in)
     if (document.querySelector('#profile')) {
         document.querySelector('#profile').addEventListener('click', evt => load_profile(evt));
         document.querySelector('#following').addEventListener('click', () => load_posts('following'));
     }
+
     document.querySelector('#all').addEventListener('click', () => load_posts('all'));
 
     // By default, load all posts
     load_posts('all');
 });
 
+// Loads posts for 'All Posts' or 'Following' pages
 function load_posts(param) {
 
     if (param === 'all') {
-        var all_element = document.querySelector('#all-view');
+        const all_element = document.querySelector('#all-view');
         document.querySelector('#header').innerHTML = 'All Posts';
 
         // Display all posts view and hide others
@@ -28,7 +31,7 @@ function load_posts(param) {
         .then(posts => posts.forEach(post => populate_posts(all_element, post)))
         .then(() => {
             // Add event listeners to username on each post 
-            let post_usernames = document.querySelectorAll('.username');
+            const post_usernames = document.querySelectorAll('.username');
             post_usernames.forEach(username => {
                 username.addEventListener('click', evt => load_profile(evt));
             });
@@ -36,7 +39,7 @@ function load_posts(param) {
     }
 
     if (param === 'following') {
-        var following_element = document.querySelector('#following-view');
+        const following_element = document.querySelector('#following-view');
         document.querySelector('#header').innerHTML = 'Following';
 
         // Display following view and hide others
@@ -51,10 +54,11 @@ function load_posts(param) {
     }
 }
 
+// Loads user profile
 function load_profile(evt) {
 
-    var target_element = evt.target;
-    var username = target_element.innerHTML;
+    const target_element = evt.target;
+    const username = target_element.innerHTML;
     document.querySelector('#header').innerHTML = username;
 
     // Display user profile view and hide others
@@ -62,37 +66,42 @@ function load_profile(evt) {
     document.querySelector('#posts-view').style.display = 'none';
 
     // Clear profile view before populating
-    var profile_element = document.querySelector('#profile-body');
+    const profile_element = document.querySelector('#profile-body');
     profile_element.innerHTML = '';
 
     fetch(`/users/${username}`)
     .then(response => response.json())
     .then(data => {
-        let profile = data.profile;
-        let posts = data.posts;
-        let is_following = false;
-
+        const profile = data.profile;
+        const posts = data.posts;
+        const is_following = false;
+        
         profile.followers.forEach(follower => {
             if (data.current_user === follower.is_following_id) {
                 is_following = true;
             }
         });
-        if (is_following === true) {
-            profile_element.innerHTML += `<button class="btn btn-primary follow" type="button">Unfollow</button>`;
-        } else if ((profile.id != data.current_user) && is_following === false) {
-            profile_element.innerHTML += `<button class="btn btn-primary follow" type="button">Follow</button>`;
+        
+        // If user is logged in, display follow/unfollow button
+        if (document.querySelector('#follow')) {
+            const follow_button = document.querySelector('#follow');
+            if (is_following === true) {
+                follow_button.innerHTML = 'Unfollow';
+            } else if ((profile.id != data.current_user) && is_following === false) {
+                follow_button.innerHTML = 'Follow';
+            }
         }
 
-        // if (data.current_user in profile.followers)
         profile_element.innerHTML += `<p>Followers: ${profile.followers.length}</p>
-            <p>Following: ${profile.following.length}</p>`;
+                                    <p>Following: ${profile.following.length}</p>`;
         posts.forEach(post => populate_posts(profile_element, post));
     })
 }
 
+// Creates the post divs
 function populate_posts(element, post) {
     
-    if (!post.num_likes) { post.num_likes = 0; }
+    if (!post.num_likes) { post.num_likes = 0 }
     element.innerHTML += `<div class="post">
                 <p class="username">${post.username}</p>
                 <p class="timestamp">${post.timestamp}</p>
