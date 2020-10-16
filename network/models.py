@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core import serializers
 from django.db import models
 
 
@@ -15,7 +16,8 @@ class Post(models.Model):
             "id": self.id,
             "username": self.user_id.username,
             "content": self.content,
-            "timestamp": self.timestamp.strftime("%b %#d %Y, %#I:%M %p")
+            "timestamp": self.timestamp.strftime("%b %#d %Y, %#I:%M %p"),
+            "likes": self.likes.all().count()
         }
 
 class Like(models.Model):
