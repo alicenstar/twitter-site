@@ -16,18 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // Loads posts for 'All Posts' or 'Following' pages
 function load_posts(post_parameter) {
 
-    const posts_element = document.querySelector('#posts-body');
-    posts_element.innerHTML = '';
-
     // Display all posts view and hide others
     document.querySelector('#profile-view').style.display = 'none';
 
     if (post_parameter === 'all') { document.querySelector('#header').innerHTML = 'All Posts' }
-    if (post_parameter === 'following') { document.querySelector('#header').innerHTML = 'Following' }
+    if (post_parameter === 'following') {
+        document.querySelector('#header').innerHTML = 'Following';
+        document.querySelector('#new-post-form').style.display = 'none';
+    }
 
     fetch(`/posts/${post_parameter}`)
     .then(response => response.json())
-    .then(posts => paginate_posts(posts_element, posts))
+    .then(posts => paginate_posts( posts))
     .then(() => add_listeners());
 }
 
@@ -42,9 +42,7 @@ function load_profile(evt) {
     document.querySelector('#profile-view').style.display = 'block';
 
     // Clear profile view before populating
-    const posts_element = document.querySelector('#posts-body');
     const follow_counts = document.querySelector('#follow-counts');
-    posts_element.innerHTML = '';
 
     fetch(`/users/${username}`)
     .then(response => response.json())
@@ -55,7 +53,7 @@ function load_profile(evt) {
         follow_counts.innerHTML = `<p id="followers">Followers: ${profile.followers_count}</p>
                                     <p id="following">Following: ${profile.following_count}</p>`;
         follow_button_checks(user_data, username);
-        paginate_posts(posts_element, posts);
+        paginate_posts(posts);
     })
     .then(() => add_listeners());
 }
@@ -75,9 +73,11 @@ function follow_button_checks(user_data, username) {
                 is_following = true;
             }
         });
+        document.querySelector('#new-post-form').style.display = 'none';
         // If the profile is the logged in user's profile, don't show button
         if (user_data.current_user === profile.id) {
             follow_button.style.display = 'none';
+            document.querySelector('#new-post-form').style.display = 'block';
         } else if (is_following === true) {
             follow_button.innerHTML = 'Unfollow';
             follow_button.addEventListener('click', () => adjust_follow(username));
@@ -103,30 +103,63 @@ function add_listeners() {
 }
 
 // Creates the post divs and paginator
-function paginate_posts(posts_element, posts) {
+function paginate_posts(posts) {
     
-    var num_pages = 1;
-    var pages = [];
+    var paginator = {
+        "num_pages": 1,
+        "pages": [],
+        "current_page": 1,
+        "page_iterator": 0
+    };
 
     if (posts.length > 10) {
         // Get page count
-        num_pages = Math.ceil(posts.length / 10);
+        paginator.num_pages = Math.ceil(posts.length / 10);
         // Populate array of pages with posts
-        for (var i = 0; i < num_pages; i++) {
-            pages[i] = posts.splice(0,10);
+        for (var i = 0; i < paginator.num_pages; i++) {
+            paginator.pages[i] = posts.splice(0,10);
         }
-        // Display first page
-        create_post_divs(posts_element, pages[0]);
-    } else { create_post_divs(posts_element, posts) }
+        // Display first page of posts
+        create_post_divs(paginator.pages[0]);
+    } else { create_post_divs(posts) }
 
+    
     const paginator_element = document.querySelector('#paginator');
-    paginator_element.innerHTML = `<p>previous</p>
-                            <p id="current_page">Page 1/${num_pages}</p>
-                            <p>next</p>`;
+    paginator_element.innerHTML = `<button id="previous" class="btn btn-primary" type="button">Previous</button>
+                            <p id="current_page">Page ${paginator.current_page}/${paginator.num_pages}</p>
+                            <button id="next" class="btn btn-primary" type="button">Next</button>`;
+    pagination_display(paginator);
+    document.querySelector('#next').addEventListener('click', () => {
+        paginator.page_iterator++;
+        paginator.current_page++;
+        create_post_divs(paginator.pages[paginator.page_iterator]);
+        pagination_display(paginator);
+        document.querySelector('#current_page').innerHTML = `Page ${paginator.current_page}/${paginator.num_pages}`;
+    });
+
+    document.querySelector('#previous').addEventListener('click', () => {
+        paginator.page_iterator--;
+        paginator.current_page--;
+        create_post_divs(paginator.pages[paginator.page_iterator]);
+        pagination_display(paginator);
+        document.querySelector('#current_page').innerHTML = `Page ${paginator.current_page}/${paginator.num_pages}`
+    });
 }
 
-function create_post_divs(posts_element, posts) {
+function pagination_display(paginator) {
 
+    // Checks if user is on first page
+    if (paginator.page_iterator === 0) { document.querySelector('#previous').style.visibility = 'hidden' }
+    else { document.querySelector('#previous').style.visibility = 'visible' }
+    // Checks if there is a 'next' page
+    if (!paginator.pages[paginator.page_iterator + 1]) { document.querySelector('#next').style.visibility = 'hidden' }
+    else { document.querySelector('#next').style.visibility = 'visible' }
+}
+
+function create_post_divs(posts) {
+
+    const posts_element = document.querySelector('#posts-body');
+    posts_element.innerHTML = '';
     posts.forEach(post => {
         if (!post.likes) { post.likes = 0 }
         posts_element.innerHTML += `<div class="post">

@@ -16,7 +16,7 @@
 
     <div id="posts-view">
         {% if user.is_authenticated %}
-            <form action="{% url 'index' %}" method="post">
+            <form id="new-post-form" action="{% url 'index' %}" method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <input id="post-button" class="btn btn-primary" type="submit" value="Post">
@@ -27,7 +27,9 @@
         </div>
     </div>
 
-    <div id="paginator"></div>
+    <div id="paginator">
+
+    </div>
 {% endblock %}
 
 {% block script %}
