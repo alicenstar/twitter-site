@@ -5,11 +5,12 @@
     <h3 id="header"></h3>
 
     <div id="profile-view">
-        {% if user.is_authenticated %}
-            <button class="btn btn-primary follow" type="button"></button>
-        {% endif %}
-        <div id="profile-body">
-            
+        <div id="follow-stats">
+            {% if user.is_authenticated %}
+                <button id="follow-button" class="btn btn-primary" type="button"></button>
+            {% endif %}
+            <div id="follow-counts">
+            </div>
         </div>
     </div>
 
@@ -21,13 +22,12 @@
                 <input id="post-button" class="btn btn-primary" type="submit" value="Post">
             </form>
         {% endif %}
-
-        <div id="all-view">
+        
+        <div id="posts-body">
         </div>
+    </div>
 
-        <div id="following-view">
-        </div>
-    </div>   
+    <div id="paginator"></div>
 {% endblock %}
 
 {% block script %}

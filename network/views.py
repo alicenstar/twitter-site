@@ -38,10 +38,6 @@ def get_posts(request, post_parameter):
                                     ).order_by('-timestamp')
         serialize_data = [post.serialize() for post in posts]
 
-    # post_paginator = Paginator(serialize_data, 10)
-    # page1 = post_paginator.get_page(1)
-    # print(page1.object_list)
-
     return JsonResponse(serialize_data, safe=False)
 
 def get_profile(request, username):
