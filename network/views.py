@@ -47,24 +47,15 @@ def get_posts(request, post_parameter):
 def get_profile(request, username):
 
     if request.method == 'GET':
-        if request.user != 'AnonymousUser':
-            current_user_obj = User.objects.get(id=request.user.id)
-            current_user = current_user_obj.id
-        else:
-            current_user = None
         user_profile = User.objects.get(username=username)
         user_posts = Post.objects.filter(user_id=user_profile.id).order_by('-timestamp')
         serialize_profile = user_profile.serialize()
         response_data = {
             'profile': serialize_profile,
             'posts': [post.serialize() for post in user_posts],
-            'current_user': current_user
+            'current_user': request.user.id
         }
         return JsonResponse(response_data, safe=False)
-    
-    if request.method == 'PUT':
-        data = json.loads(request.body)
-        print(data)
 
 def adjust_likes(request, post_id):
 
