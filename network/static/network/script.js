@@ -28,18 +28,7 @@ function load_posts(post_parameter) {
     fetch(`/posts/${post_parameter}`)
     .then(response => response.json())
     .then(posts => paginate_posts(posts_element, posts))
-    .then(() => {
-        // Add event listeners to username on each post 
-        const post_usernames = document.querySelectorAll('.username');
-        post_usernames.forEach(username => {
-            username.addEventListener('click', evt => load_profile(evt));
-        });
-        // Add event listeners to like hearts on each post
-        const like_hearts = document.querySelectorAll('.likes');
-        like_hearts.forEach(heart => {
-            heart.addEventListener('click', (evt) => adjust_like(evt));
-        });
-    });
+    .then(() => add_listeners());
 }
 
 // Loads user profile
@@ -59,49 +48,57 @@ function load_profile(evt) {
 
     fetch(`/users/${username}`)
     .then(response => response.json())
-    .then(data => {
-        const profile = data.profile;
-        const posts = data.posts;
-        var is_following = false;
-
-        // If user is logged in, display follow/unfollow button
-        if (document.querySelector('#follow-button')) {
-            // Check if current user is in the profile user's followers
-            profile.followers.forEach(follower => {
-                if (data.current_user === follower.followed_by_id) {
-                    is_following = true;
-                }
-            });
-
-            const follow_button = document.querySelector('#follow-button');
-
-            // If the profile is the logged in user's profile, don't show button
-            if (data.current_user === profile.id) {
-                follow_button.style.display = 'none';
-            } else if (is_following === true) {
-                follow_button.innerHTML = 'Unfollow';
-                follow_button.addEventListener('click', () => adjust_follow(username));
-            } else {
-                follow_button.innerHTML = 'Follow';
-                follow_button.addEventListener('click', () => adjust_follow(username));
-            }
-        }
+    .then(user_data => {
+        const profile = user_data.profile;
+        const posts = user_data.posts;
         
         follow_counts.innerHTML = `<p id="followers">Followers: ${profile.followers_count}</p>
                                     <p id="following">Following: ${profile.following_count}</p>`;
+        follow_button_checks(user_data, username);
         paginate_posts(posts_element, posts);
     })
-    .then(() => {
-        // Add event listeners to username on each post 
-        const post_usernames = document.querySelectorAll('.username');
-        post_usernames.forEach(username => {
-            username.addEventListener('click', evt => load_profile(evt));
+    .then(() => add_listeners());
+}
+
+function follow_button_checks(user_data, username) {
+    
+    const profile = user_data.profile;
+    var is_following = false;
+
+    // If user is logged in, display follow/unfollow button
+    if (document.querySelector('#follow-button')) {
+        const follow_button = document.querySelector('#follow-button');
+
+        // Check if current user is in the profile user's followers
+        profile.followers.forEach(follower => {
+            if (user_data.current_user === follower.followed_by_id) {
+                is_following = true;
+            }
         });
-        // Add event listeners to like hearts on each post
-        const like_hearts = document.querySelectorAll('.likes');
-        like_hearts.forEach(heart => {
-            heart.addEventListener('click', (evt) => adjust_like(evt));
-        });
+        // If the profile is the logged in user's profile, don't show button
+        if (user_data.current_user === profile.id) {
+            follow_button.style.display = 'none';
+        } else if (is_following === true) {
+            follow_button.innerHTML = 'Unfollow';
+            follow_button.addEventListener('click', () => adjust_follow(username));
+        } else {
+            follow_button.innerHTML = 'Follow';
+            follow_button.addEventListener('click', () => adjust_follow(username));
+        }
+    }
+}
+
+function add_listeners() {
+
+    // Add event listeners to username on each post 
+    const post_usernames = document.querySelectorAll('.username');
+    post_usernames.forEach(username => {
+        username.addEventListener('click', evt => load_profile(evt));
+    });
+    // Add event listeners to hearts on each post
+    const like_hearts = document.querySelectorAll('.likes');
+    like_hearts.forEach(heart => {
+        heart.addEventListener('click', (evt) => adjust_like(evt));
     });
 }
 
@@ -156,12 +153,12 @@ function adjust_follow(username) {
 
     fetch(`/follow/${username}`)
     .then(response => response.json())
-    .then(data => {
-        const profile = data.profile;
+    .then(user_data => {
+        const profile = user_data.profile;
         const follow_button = document.querySelector('#follow-button');
         const followers_element = document.querySelector('#followers');
         // Change what follow button says depending on if user is following
-        if (data.status === true) {
+        if (user_data.status === true) {
             follow_button.innerHTML = 'Unfollow';
         } else {
             follow_button.innerHTML = 'Follow';
