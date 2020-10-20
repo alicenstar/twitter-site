@@ -21,14 +21,13 @@ function load_posts(post_parameter) {
 
     // Display all posts view and hide others
     document.querySelector('#profile-view').style.display = 'none';
-    // document.querySelector('#posts-view').style.display = 'block';
 
     if (post_parameter === 'all') { document.querySelector('#header').innerHTML = 'All Posts' }
     if (post_parameter === 'following') { document.querySelector('#header').innerHTML = 'Following' }
 
     fetch(`/posts/${post_parameter}`)
     .then(response => response.json())
-    .then(posts => populate_posts(posts_element, posts))
+    .then(posts => paginate_posts(posts_element, posts))
     .then(() => {
         // Add event listeners to username on each post 
         const post_usernames = document.querySelectorAll('.username');
@@ -38,7 +37,7 @@ function load_posts(post_parameter) {
         // Add event listeners to like hearts on each post
         const like_hearts = document.querySelectorAll('.likes');
         like_hearts.forEach(heart => {
-            heart.addEventListener('click', (evt) => adjust_likes(evt));
+            heart.addEventListener('click', (evt) => adjust_like(evt));
         });
     });
 }
@@ -57,7 +56,6 @@ function load_profile(evt) {
     const posts_element = document.querySelector('#posts-body');
     const follow_counts = document.querySelector('#follow-counts');
     posts_element.innerHTML = '';
-    follow_counts.innerHTML = '';
 
     fetch(`/users/${username}`)
     .then(response => response.json())
@@ -91,7 +89,7 @@ function load_profile(evt) {
         
         follow_counts.innerHTML = `<p id="followers">Followers: ${profile.followers_count}</p>
                                     <p id="following">Following: ${profile.following_count}</p>`;
-        populate_posts(posts_element, posts);
+        paginate_posts(posts_element, posts);
     })
     .then(() => {
         // Add event listeners to username on each post 
@@ -102,13 +100,13 @@ function load_profile(evt) {
         // Add event listeners to like hearts on each post
         const like_hearts = document.querySelectorAll('.likes');
         like_hearts.forEach(heart => {
-            heart.addEventListener('click', (evt) => adjust_likes(evt));
+            heart.addEventListener('click', (evt) => adjust_like(evt));
         });
     });
 }
 
-// Creates the post divs
-function populate_posts(posts_element, posts) {
+// Creates the post divs and paginator
+function paginate_posts(posts_element, posts) {
     
     var num_pages = 1;
     var pages = [];
@@ -121,35 +119,29 @@ function populate_posts(posts_element, posts) {
             pages[i] = posts.splice(0,10);
         }
         // Display first page
-        pages[0].forEach(post => {
-            if (!post.likes) { post.likes = 0 }
-            posts_element.innerHTML += `<div class="post">
-                        <p class="username">${post.username}</p>
-                        <p class="timestamp">${post.timestamp}</p>
-                        <p class="content">${post.content}</p>
-                        <p id="${post.id}" class="likes">❤️ ${post.likes}</p>
-                        </div>`;
-        });
-    } else {
-        posts.forEach(post => {
-            if (!post.likes) { post.likes = 0 }
-            posts_element.innerHTML += `<div class="post">
-                        <p class="username">${post.username}</p>
-                        <p class="timestamp">${post.timestamp}</p>
-                        <p class="content">${post.content}</p>
-                        <p id="${post.id}" class="likes">❤️ ${post.likes}</p>
-                        </div>`;
-        });
-    }
+        create_post_divs(posts_element, pages[0]);
+    } else { create_post_divs(posts_element, posts) }
 
     const paginator_element = document.querySelector('#paginator');
-    paginator_element.innerHTML = '';
-    paginator_element.innerHTML += `<div id="pagination">
-                            <p id="current_page">Page 1/1</p>
-                            </div>`;
+    paginator_element.innerHTML = `<p>previous</p>
+                            <p id="current_page">Page 1/${num_pages}</p>
+                            <p>next</p>`;
 }
 
-function adjust_likes(evt) {
+function create_post_divs(posts_element, posts) {
+
+    posts.forEach(post => {
+        if (!post.likes) { post.likes = 0 }
+        posts_element.innerHTML += `<div class="post">
+                    <p class="username">${post.username}</p>
+                    <p class="timestamp">${post.timestamp}</p>
+                    <p class="content">${post.content}</p>
+                    <p id="${post.id}" class="likes">❤️ ${post.likes}</p>
+                    </div>`;
+    });
+}
+
+function adjust_like(evt) {
 
     const post_id = evt.target.id;
     fetch(`/likes/${post_id}`)

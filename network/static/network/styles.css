@@ -68,3 +68,9 @@ label[for='id_content'] {
     padding: 0;
     margin: 0;
 }
+
+#paginator {
+    width: 50%;
+    display: flex;
+    justify-content: space-between;
+}
