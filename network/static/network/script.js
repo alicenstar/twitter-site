@@ -94,13 +94,17 @@ function load_profile(evt) {
                 follow_button.style.display = 'none';
             } else if (is_following === true) {
                 follow_button.innerHTML = 'Unfollow';
+                follow_button.addEventListener('click', () => adjust_follow(username));
             } else {
                 follow_button.innerHTML = 'Follow';
+                follow_button.addEventListener('click', () => adjust_follow(username));
             }
         }
 
-        profile_element.innerHTML += `<p>Followers: ${profile.followers.length}</p>
-                                    <p>Following: ${profile.following.length}</p>`;
+        profile_element.innerHTML += `<div id="follow_counts">
+                                    <p id="followers">Followers: ${profile.followers_count}</p>
+                                    <p id="following">Following: ${profile.following_count}</p>
+                                    </div>`;
         posts.forEach(post => populate_posts(profile_element, post));
     })
     .then(() => {
@@ -134,8 +138,27 @@ function adjust_likes(evt) {
     const post_id = evt.target.id;
     fetch(`/likes/${post_id}`)
     .then(response => response.json())
-    .then(function(post) {
+    .then(post => {
         if (!post.likes) { post.likes = 0 }
         evt.target.innerHTML = `❤️ ${post.likes}`;
+    });
+}
+
+function adjust_follow(username) {
+
+    fetch(`/follow/${username}`)
+    .then(response => response.json())
+    .then(data => {
+        const profile = data.profile;
+        const follow_button = document.querySelector('.follow');
+        const followers_element = document.querySelector('#followers');
+        // Change what follow button says depending on if user is following
+        if (data.status === true) {
+            follow_button.innerHTML = 'Unfollow';
+        } else {
+            follow_button.innerHTML = 'Follow';
+        }
+        // Update number of followers
+        followers_element.innerHTML = `<p>Followers: ${profile.followers_count}</p>`;
     });
 }

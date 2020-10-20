@@ -1,5 +1,6 @@
 import json
 from django.contrib.auth import authenticate, login, logout
+from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import IntegrityError
 from django.db.models import Count, OuterRef, Subquery
@@ -36,28 +37,34 @@ def get_posts(request, post_parameter):
         posts = Post.objects.filter(user_id__in=user_following
                                     ).order_by('-timestamp')
         serialize_data = [post.serialize() for post in posts]
+
+    # post_paginator = Paginator(serialize_data, 10)
+    # page1 = post_paginator.get_page(1)
+    # print(page1.object_list)
+
     return JsonResponse(serialize_data, safe=False)
 
 def get_profile(request, username):
 
-    if request.user != 'AnonymousUser':
-        current_user_obj = User.objects.get(id=request.user.id)
-        current_user = current_user_obj.id
-    else:
-        current_user = None
-    user_profile = User.objects.get(username=username)
-    user_posts = Post.objects.filter(user_id=user_profile.id).order_by('-timestamp')
-    response_data = {
-        'profile': {
-            'id': user_profile.id,
-            'username': user_profile.username,
-            'following': list(user_profile.following.all().values()),
-            'followers': list(user_profile.followers.all().values())
-        },
-        'posts': [post.serialize() for post in user_posts],
-        'current_user': current_user
-    }
-    return JsonResponse(response_data, safe=False)
+    if request.method == 'GET':
+        if request.user != 'AnonymousUser':
+            current_user_obj = User.objects.get(id=request.user.id)
+            current_user = current_user_obj.id
+        else:
+            current_user = None
+        user_profile = User.objects.get(username=username)
+        user_posts = Post.objects.filter(user_id=user_profile.id).order_by('-timestamp')
+        serialize_profile = user_profile.serialize()
+        response_data = {
+            'profile': serialize_profile,
+            'posts': [post.serialize() for post in user_posts],
+            'current_user': current_user
+        }
+        return JsonResponse(response_data, safe=False)
+    
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        print(data)
 
 def adjust_likes(request, post_id):
 
@@ -71,9 +78,32 @@ def adjust_likes(request, post_id):
         else:
             like = Like.objects.create(user_id=current_user, post_id=post)
             like.save()
-        updated_post = Post.objects.get(id=post_id)
-        serialize_data = updated_post.serialize()
+        post.refresh_from_db()
+        serialize_data = post.serialize()
         return JsonResponse(serialize_data, safe=False)
+
+def adjust_follow(request, username):
+
+    if request.user != 'AnonymousUser':
+        current_user = User.objects.get(id=request.user.id)
+        user_to_follow = User.objects.get(username=username)
+        # If user already following user, unfollow user
+        if Follow.objects.filter(followed_by=current_user, being_followed=user_to_follow).exists():
+            Follow.objects.get(followed_by=current_user, being_followed=user_to_follow).delete()
+            follow_status = False
+        # Otherwise like the post
+        else:
+            follow = Follow.objects.create(followed_by=current_user, being_followed=user_to_follow)
+            follow.save()
+            follow_status = True
+        user_to_follow.refresh_from_db()
+        serialize_user = user_to_follow.serialize()
+        response_obj = {
+            "status": follow_status,
+            "profile": serialize_user
+        }
+        return JsonResponse(response_obj, safe=False)
+
 
 def login_view(request):
 

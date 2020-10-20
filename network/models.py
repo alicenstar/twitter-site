@@ -4,7 +4,15 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    def serialize(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "followers": list(self.followers.all().values()),
+            "following": list(self.following.all().values()),
+            "followers_count": self.followers.all().count(),
+            "following_count": self.following.all().count()
+        }
 
 class Post(models.Model):
     user_id = models.ForeignKey(User, related_name="posts", on_delete=models.CASCADE)
