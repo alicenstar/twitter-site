@@ -16,19 +16,40 @@ document.addEventListener('DOMContentLoaded', () => {
 // Loads posts for 'All Posts' or 'Following' pages
 function load_posts(post_parameter) {
 
+    let allForms = document.querySelectorAll('.post-form');
+    const emptyNewPostForm = allForms.item(allForms.length - 1); // Gets last form (the empty one) from the array of forms
+    const totalForms = document.querySelector("#id_form-TOTAL_FORMS");
+    allForms.forEach(form => {
+        if (form != emptyNewPostForm) {
+            form.style.display = 'none';
+        }
+    }); // Hides all forms except the empty form initially
+    emptyNewPostForm.id = 'new-post-form';
+
+
     // Display all posts view and hide others
     document.querySelector('#profile-view').style.display = 'none';
 
     if (post_parameter === 'all') { document.querySelector('#header').innerHTML = 'All Posts' }
     if (post_parameter === 'following') {
         document.querySelector('#header').innerHTML = 'Following';
-        document.querySelector('#new-post-form').style.display = 'none';
+        document.querySelector('#post-form-container').style.display = 'none';
     }
 
     fetch(`/posts/${post_parameter}`)
     .then(response => response.json())
-    .then(posts => paginate_posts( posts))
-    .then(() => add_listeners());
+    .then(posts => paginate_posts(posts))
+    .then(() => {
+        // Add edit buttons to logged in user's posts
+        const user_elements = document.querySelectorAll('.username');
+        user_elements.forEach(username => {
+            if (username.innerText === document.querySelector('#profile').innerText) {
+                let post = username.parentNode;
+                post.innerHTML += `<p class="edit">Edit</p>`;
+            }
+        });
+        add_listeners();
+    });
 }
 
 // Loads user profile
@@ -73,11 +94,11 @@ function follow_button_checks(user_data, username) {
                 is_following = true;
             }
         });
-        document.querySelector('#new-post-form').style.display = 'none';
         // If the profile is the logged in user's profile, don't show button
         if (user_data.current_user === profile.id) {
             follow_button.style.display = 'none';
-            document.querySelector('#new-post-form').style.display = 'block';
+            document.querySelector('#post-form-container').style.display = 'block';
+
         } else if (is_following === true) {
             follow_button.innerHTML = 'Unfollow';
             follow_button.addEventListener('click', () => adjust_follow(username));
@@ -90,16 +111,21 @@ function follow_button_checks(user_data, username) {
 
 function add_listeners() {
 
-    // Add event listeners to username on each post 
+    // Add listeners to username on each post 
     const post_usernames = document.querySelectorAll('.username');
     post_usernames.forEach(username => {
         username.addEventListener('click', evt => load_profile(evt));
     });
-    // Add event listeners to hearts on each post
+    // Add listeners to hearts on each post
     const like_hearts = document.querySelectorAll('.likes');
     like_hearts.forEach(heart => {
-        heart.addEventListener('click', (evt) => adjust_like(evt));
+        heart.addEventListener('click', evt => adjust_like(evt));
     });
+    // Add listeners to edit buttons
+    const edit_buttons = document.querySelectorAll('.edit');
+    edit_buttons.forEach(button => {
+        button.addEventListener('click', evt => edit_post(evt));
+    })
 }
 
 // Creates the post divs and paginator
@@ -162,18 +188,18 @@ function create_post_divs(posts) {
     posts_element.innerHTML = '';
     posts.forEach(post => {
         if (!post.likes) { post.likes = 0 }
-        posts_element.innerHTML += `<div class="post">
+        posts_element.innerHTML += `<div id="${post.id}" class="post">
                     <p class="username">${post.username}</p>
                     <p class="timestamp">${post.timestamp}</p>
                     <p class="content">${post.content}</p>
-                    <p id="${post.id}" class="likes">❤️ ${post.likes}</p>
+                    <p class="likes">❤️ ${post.likes}</p>
                     </div>`;
     });
 }
 
 function adjust_like(evt) {
 
-    const post_id = evt.target.id;
+    const post_id = evt.target.parentNode.id;
     fetch(`/likes/${post_id}`)
     .then(response => response.json())
     .then(post => {
@@ -200,3 +226,24 @@ function adjust_follow(username) {
         followers_element.innerHTML = `<p>Followers: ${profile.followers_count}</p>`;
     });
 }
+
+function edit_post(evt) {
+
+    const post = evt.target.parentNode;
+    const post_content = post.querySelector('.content');
+    post_content.style.display = 'none';
+    const content_text = post_content.innerText;
+    newEditForm.value = content_text;
+
+    const saveButton = document.createElement('INPUT');
+    saveButton.setAttribute('id', 'submit-edit');
+    saveButton.setAttribute('class', 'btn btn-primary');
+    saveButton.setAttribute('type', 'submit');
+    saveButton.setAttribute('value', 'Save');
+
+    post_content.insertAdjacentElement('afterend', saveButton);
+    post_content.insertAdjacentElement('afterend', newEditForm);
+
+}
+
+// Go back and format variable names to be consistent

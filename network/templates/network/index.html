@@ -16,9 +16,14 @@
 
     <div id="posts-view">
         {% if user.is_authenticated %}
-            <form id="new-post-form" action="{% url 'index' %}" method="post">
+            <form id="post-form-container" action="{% url 'index' %}" method="post">
                 {% csrf_token %}
-                {{ form.as_p }}
+                {{ post_formset.management_form }}
+                {% for form in post_formset %}
+                <div class="post-form">
+                    {{ form.as_p }}
+                </div>
+                {% endfor %}
                 <input id="post-button" class="btn btn-primary" type="submit" value="Post">
             </form>
         {% endif %}

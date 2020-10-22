@@ -9,21 +9,25 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from .models import User, Post, Like, Follow
-from .forms import NewPostForm
+from .forms import PostFormSet
 
 
 def index(request):
 
     # Saves a new post
     if request.method == 'POST':
-        form = NewPostForm(request.POST)
-        if form.is_valid():
-            new = form.save(commit=False)
-            new.user_id = request.user
-            new.save()
+        formset = PostFormSet(request.POST)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.user_id = request.user
+                instance.save()
     return render(request, "network/index.html", {
-        "form": NewPostForm()
+            "post_formset": PostFormSet()
     })
+
+def update_post(request):
+    pass
 
 def get_posts(request, post_parameter):
 

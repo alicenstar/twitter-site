@@ -22,13 +22,13 @@ textarea {
     border-radius: 4px;
 }
 
-label[for='id_content'] {
+label {
     display: block;
     font-weight: bold;
 }
 
 /* content field */
-#id_content {
+#id_form-0-content {
     height: 100px;
     width: 100%;
     margin: 0;
