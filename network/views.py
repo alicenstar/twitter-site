@@ -26,9 +26,6 @@ def index(request):
             "post_formset": PostFormSet()
     })
 
-def update_post(request):
-    pass
-
 def get_posts(request, post_parameter):
 
     # Filter posts based on parameter
