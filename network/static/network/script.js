@@ -224,19 +224,42 @@ function adjust_follow(username) {
 function edit_post(evt) {
 
     const post = evt.target.parentNode;
+    const post_full_id = post.id;
+    // Gets just the digits from the post id
+    const post_id = post_full_id.match(/\d+/)[0];
     const post_content = post.querySelector('.content');
-    post_content.style.display = 'none';
+    // Hides content of post, displays form instead
     const content_text = post_content.innerText;
-    newEditForm.value = content_text;
+    post_content.style.display = 'none';
 
-    const saveButton = document.createElement('INPUT');
-    saveButton.setAttribute('id', 'submit-edit');
-    saveButton.setAttribute('class', 'btn btn-primary');
-    saveButton.setAttribute('type', 'submit');
-    saveButton.setAttribute('value', 'Save');
+    // Finds corresponding form from hidden formset, displays it
+    const formset = document.querySelectorAll('.post-form');
+    formset.forEach(form => {
+        if (form.querySelector('p').querySelector('input').value === post_id) {
+            const corresponding_form = form;
+            corresponding_form.querySelector('textarea').value = content_text;
 
-    post_content.insertAdjacentElement('afterend', saveButton);
-    post_content.insertAdjacentElement('afterend', newEditForm);
+            const newForm = document.createElement('FORM');
+            newForm.setAttribute('method', 'post');
+            newForm.setAttribute('action', '/');
+            newForm.setAttribute('id', 'edit-form');
+
+            post_content.insertAdjacentElement('afterend', newForm);
+            newForm.appendChild(document.querySelector('#submission-data'));
+            newForm.appendChild(corresponding_form);
+            const saveButton = document.createElement('INPUT');
+            saveButton.setAttribute('id', 'submit-edit');
+            saveButton.setAttribute('class', 'btn btn-primary');
+            saveButton.setAttribute('type', 'submit');
+            saveButton.setAttribute('value', 'Save');
+
+            newForm.appendChild(saveButton);
+
+            corresponding_form.style.display = 'block';
+            post.querySelector('.edit').style.display = 'none';
+        }
+    });
+
 
 }
 

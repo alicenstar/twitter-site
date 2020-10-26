@@ -18,10 +18,12 @@ def index(request):
     if request.method == 'POST':
         formset = PostFormSet(request.POST)
         if formset.is_valid():
-            instances = formset.save(commit=False)
-            for instance in instances:
-                instance.user_id = request.user
-                instance.save()
+            for form in formset:
+                form.user_id = request.user
+                form.save()
+                print('successfully saved')
+        else:
+            print("invalid")
     return render(request, "network/index.html", {
             "post_formset": PostFormSet()
     })

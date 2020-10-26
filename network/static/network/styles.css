@@ -1,6 +1,7 @@
 .body {
     padding: 16px;
     margin: 0;
+    width: 50%;
 }
 
 #profile {
@@ -11,28 +12,44 @@
 form {
     border: 1px solid lightgray;
     border-radius: 4px;
-    width: 50%;
     padding: 16px;
     margin-bottom: 16px;
+}
+
+#edit-form {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+#edit-form label {
+    display: none;
+}
+
+#edit-form p {
+    padding: 0;
+    margin: 0;
+}
+
+#submit-edit {
+    float: right;
+    margin-top: 5px;
 }
 
 textarea {
     resize: none;
     border: 1px solid darkgray;
     border-radius: 4px;
-}
-
-label {
-    display: block;
-    font-weight: bold;
-}
-
-/* content field */
-#id_form-0-content {
     height: 100px;
     width: 100%;
     margin: 0;
     padding: 6px;
+}
+
+
+label {
+    display: block;
+    font-weight: bold;
 }
 
 #post-button {
@@ -44,7 +61,6 @@ label {
 .post {
     border: 1px solid lightgray;
     border-radius: 4px;
-    width: 50%;
     margin: 10px 0;
     padding: 16px;
 }
@@ -61,16 +77,21 @@ label {
 
 .content {
     padding: 0;
-    margin-bottom: 10px 0;
+    margin: 0;
 }
 
 .likes {
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+.edit {
     padding: 0;
     margin: 0;
 }
 
 #paginator {
-    width: 50%;
     display: flex;
     justify-content: space-between;
 }
