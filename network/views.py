@@ -14,18 +14,17 @@ from .forms import PostFormSet
 
 def index(request):
 
-    # Saves a new post
+    # Saves new post or updates existing post
     if request.method == 'POST':
-        formset = PostFormSet(request.POST)
-        if formset.is_valid():
-            for form in formset:
-                form.user_id = request.user
-                form.save()
-                print('successfully saved')
-        else:
-            print("invalid")
+        formset = PostFormSet(data=request.POST)
+        for form in formset:
+            if form.has_changed() and form.is_valid():
+                instance = form.save(commit=False)
+                instance.user_id = request.user
+                instance.save()
+
     return render(request, "network/index.html", {
-            "post_formset": PostFormSet()
+            "post_formset": PostFormSet(queryset=Post.objects.all())
     })
 
 def get_posts(request, post_parameter):
@@ -49,10 +48,11 @@ def get_profile(request, username):
         user_profile = User.objects.get(username=username)
         user_posts = Post.objects.filter(user_id=user_profile.id).order_by('-timestamp')
         serialize_profile = user_profile.serialize()
+        # Use JavaScript naming conventions since it's passed to JS file
         response_data = {
             'profile': serialize_profile,
             'posts': [post.serialize() for post in user_posts],
-            'current_user': request.user.id
+            'currentUser': request.user.id
         }
         return JsonResponse(response_data, safe=False)
 

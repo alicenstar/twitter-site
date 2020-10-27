@@ -34,6 +34,10 @@ form {
 #submit-edit {
     float: right;
     margin-top: 5px;
+    height: 36px;
+    width: 100px;
+    line-height: 0;
+    vertical-align: middle;
 }
 
 textarea {
@@ -73,6 +77,7 @@ label {
 
 .timestamp {
     color: #777777;
+    margin-bottom: 10px;
 }
 
 .content {

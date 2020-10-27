@@ -1,22 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // By default, load all posts
-    load_posts('all');
+    loadPosts('all');
     // Use nav to toggle between views
     // Checks if elements exist (user is logged in)
     if (document.querySelector('#profile')) {
-        document.querySelector('#profile').addEventListener('click', evt => load_profile(evt));
-        document.querySelector('#following').addEventListener('click', () => load_posts('following'));
+        document.querySelector('#profile').addEventListener('click', evt => loadProfile(evt));
+        document.querySelector('#following').addEventListener('click', () => loadPosts('following'));
     }
-    document.querySelector('#all').addEventListener('click', () => load_posts('all'));
+    document.querySelector('#all').addEventListener('click', () => loadPosts('all'));
 });
 
 // Loads posts for 'All Posts' or 'Following' pages
-function load_posts(post_parameter) {
+function loadPosts(postFilter) {
 
     let allForms = document.querySelectorAll('.post-form');
     const emptyNewPostForm = allForms.item(allForms.length - 1); // Gets last form (the empty one) from the array of forms
-    const totalForms = document.querySelector("#id_form-TOTAL_FORMS");
     allForms.forEach(form => {
         if (form != emptyNewPostForm) {
             form.style.display = 'none';
@@ -29,147 +28,147 @@ function load_posts(post_parameter) {
     // Display all posts view and hide others
     document.querySelector('#profile-view').style.display = 'none';
     // Change page header and show/hide new post form
-    if (post_parameter === 'all') { document.querySelector('#header').innerHTML = 'All Posts' }
-    if (post_parameter === 'following') {
+    if (postFilter === 'all') { document.querySelector('#header').innerHTML = 'All Posts' }
+    if (postFilter === 'following') {
         document.querySelector('#header').innerHTML = 'Following';
         document.querySelector('#post-form-container').style.display = 'none';
     }
 
-    fetch(`/posts/${post_parameter}`)
+    fetch(`/posts/${postFilter}`)
     .then(response => response.json())
-    .then(posts => paginate_posts(posts));
+    .then(posts => paginatePosts(posts));
 }
 
 // Loads user profile
-function load_profile(evt) {
+function loadProfile(evt) {
 
-    const target_element = evt.target;
-    const username = target_element.innerHTML;
+    const targetElement = evt.target;
+    const username = targetElement.innerHTML;
     document.querySelector('#header').innerHTML = username;
 
     // Display user profile view and hide others
     document.querySelector('#profile-view').style.display = 'block';
 
     // Clear profile view before populating
-    const follow_counts = document.querySelector('#follow-counts');
+    const followCounts = document.querySelector('#follow-counts');
 
     fetch(`/users/${username}`)
     .then(response => response.json())
-    .then(user_data => {
-        const profile = user_data.profile;
-        const posts = user_data.posts;
-        follow_counts.innerHTML = `<p id="followers">Followers: ${profile.followers_count}</p>
-                                    <p id="following">Following: ${profile.following_count}</p>`;
-        follow_button_checks(user_data, username);
-        paginate_posts(posts);
+    .then(userData => {
+        const profile = userData.profile;
+        const posts = userData.posts;
+        followCounts.innerHTML = `<p id="followers">Followers: ${profile.followersCount}</p>
+                                    <p id="following">Following: ${profile.followingCount}</p>`;
+        followButtonChecks(userData, username);
+        paginatePosts(posts);
     });
 }
 
-function follow_button_checks(user_data, username) {
+function followButtonChecks(userData, username) {
     
-    const profile = user_data.profile;
+    const profile = userData.profile;
     // If user is logged in, display follow/unfollow button
     if (document.querySelector('#follow-button')) {
-        const follow_button = document.querySelector('#follow-button');
-        var is_following = false;
+        const followButton = document.querySelector('#follow-button');
+        var isFollowing = false;
         // Check if current user is in the profile user's followers
         profile.followers.forEach(follower => {
-            if (user_data.current_user === follower.followed_by_id) {
-                is_following = true;
+            if (userData.currentUser === follower.followed_by_id) {
+                isFollowing = true;
             }
         });
         // Set new post form to be hidden by default
         document.querySelector('#post-form-container').style.display = 'none';
         // If the profile is the logged in user's profile, don't show follow button
         // If the profile is the logged in user's profile, show the new post form
-        if (user_data.current_user === profile.id) {
-            follow_button.style.display = 'none';
+        if (userData.currentUser === profile.id) {
+            followButton.style.display = 'none';
             document.querySelector('#post-form-container').style.display = 'block';
-        } else if (is_following === true) {
-            follow_button.innerHTML = 'Unfollow';
-            follow_button.addEventListener('click', () => adjust_follow(username));
+        } else if (isFollowing === true) {
+            followButton.innerHTML = 'Unfollow';
+            followButton.addEventListener('click', () => adjustFollow(username));
         } else {
-            follow_button.innerHTML = 'Follow';
-            follow_button.addEventListener('click', () => adjust_follow(username));
+            followButton.innerHTML = 'Follow';
+            followButton.addEventListener('click', () => adjustFollow(username));
         }
     }
 }
 
 // Creates the post divs and paginator
-function paginate_posts(posts) {
+function paginatePosts(posts) {
     
     var paginator = {
-        "num_pages": 1,
+        "numPages": 1,
         "pages": [],
-        "current_page": 1,
-        "page_iterator": 0
+        "currentPage": 1,
+        "pageIterator": 0
     };
 
     // Get page count
-    paginator.num_pages = Math.ceil(posts.length / 10);
+    paginator.numPages = Math.ceil(posts.length / 10);
     // Populate array of pages with posts
-    for (var i = 0; i < paginator.num_pages; i++) {
+    for (var i = 0; i < paginator.numPages; i++) {
         paginator.pages[i] = posts.splice(0,10);
     }
     // Display first page of posts
-    create_post_divs(paginator.pages[0]);
+    createPostDivs(paginator.pages[0]);
 
-    const paginator_element = document.querySelector('#paginator');
-    paginator_element.innerHTML = `<button id="previous" class="btn btn-primary" type="button">Previous</button>
-                            <p id="current_page">Page ${paginator.current_page}/${paginator.num_pages}</p>
+    const paginatorElement = document.querySelector('#paginator');
+    paginatorElement.innerHTML = `<button id="previous" class="btn btn-primary" type="button">Previous</button>
+                            <p id="currentPage">Page ${paginator.currentPage}/${paginator.numPages}</p>
                             <button id="next" class="btn btn-primary" type="button">Next</button>`;
 
     document.querySelector('#next').addEventListener('click', () => {
-        paginator.page_iterator++;
-        paginator.current_page++;
-        create_post_divs(paginator.pages[paginator.page_iterator]);
-        pagination_display(paginator);
-        document.querySelector('#current_page').innerHTML = `Page ${paginator.current_page}/${paginator.num_pages}`;
+        paginator.pageIterator++;
+        paginator.currentPage++;
+        createPostDivs(paginator.pages[paginator.pageIterator]);
+        paginationDisplay(paginator);
+        document.querySelector('#currentPage').innerHTML = `Page ${paginator.currentPage}/${paginator.numPages}`;
     
     });
     document.querySelector('#previous').addEventListener('click', () => {
-        paginator.page_iterator--;
-        paginator.current_page--;
-        create_post_divs(paginator.pages[paginator.page_iterator]);
-        pagination_display(paginator);
-        document.querySelector('#current_page').innerHTML = `Page ${paginator.current_page}/${paginator.num_pages}`
+        paginator.pageIterator--;
+        paginator.currentPage--;
+        createPostDivs(paginator.pages[paginator.pageIterator]);
+        paginationDisplay(paginator);
+        document.querySelector('#currentPage').innerHTML = `Page ${paginator.currentPage}/${paginator.numPages}`
     });
-    pagination_display(paginator);
+    paginationDisplay(paginator);
 }
 
-function pagination_display(paginator) {
+function paginationDisplay(paginator) {
 
     // Checks if user is on first page
-    if (paginator.page_iterator === 0) { document.querySelector('#previous').style.visibility = 'hidden' }
+    if (paginator.pageIterator === 0) { document.querySelector('#previous').style.visibility = 'hidden' }
     else { document.querySelector('#previous').style.visibility = 'visible' }
     // Checks if there is a 'next' page
-    if (!paginator.pages[paginator.page_iterator + 1]) { document.querySelector('#next').style.visibility = 'hidden' }
+    if (!paginator.pages[paginator.pageIterator + 1]) { document.querySelector('#next').style.visibility = 'hidden' }
     else { document.querySelector('#next').style.visibility = 'visible' }
 
 }
 
-function create_post_divs(posts) {
+function createPostDivs(posts) {
 
-    const posts_element = document.querySelector('#posts-body');
-    posts_element.innerHTML = '';
+    const postsElement = document.querySelector('#posts-body');
+    postsElement.innerHTML = '';
     posts.forEach(post => {
         if (!post.likes) { post.likes = 0 }
-        posts_element.innerHTML += `<div id="post${post.id}" class="post">
+        postsElement.innerHTML += `<div id="post${post.id}" class="post">
                     <p class="username">${post.username}</p>
                     <p class="timestamp">${post.timestamp}</p>
                     <p class="content">${post.content}</p>
                     <p class="likes">❤️ ${post.likes}</p>
                     </div>`;
     });
-    add_listeners();
+    addListeners();
 }
 
-function add_listeners() {
+function addListeners() {
 
     // Add listeners to username on each post
-    const post_usernames = document.querySelectorAll('.username');
-    post_usernames.forEach(username => {
-        username.addEventListener('click', evt => load_profile(evt));
+    const postUsernames = document.querySelectorAll('.username');
+    postUsernames.forEach(username => {
+        username.addEventListener('click', evt => loadProfile(evt));
         // Adds 'edit' buttons to logged in user's posts
         if (document.querySelector('#profile')) {
             if (username.innerText === document.querySelector('#profile').innerText) {
@@ -179,22 +178,22 @@ function add_listeners() {
         }
     });
     // Add listeners to edit buttons
-    const edit_buttons = document.querySelectorAll('.edit');
-    edit_buttons.forEach(button => {
-        button.addEventListener('click', evt => edit_post(evt));
+    const editButtons = document.querySelectorAll('.edit');
+    editButtons.forEach(button => {
+        button.addEventListener('click', evt => editPost(evt));
     });
     // Add listeners to hearts on each post
-    const like_hearts = document.querySelectorAll('.likes');
-    like_hearts.forEach(heart => {
-        heart.addEventListener('click', evt => adjust_like(evt));
+    const likeHearts = document.querySelectorAll('.likes');
+    likeHearts.forEach(heart => {
+        heart.addEventListener('click', evt => adjustLike(evt));
     });
 }
 
-function adjust_like(evt) {
+function adjustLike(evt) {
 
-    const post_full_id = evt.target.parentNode.id;
-    const post_id = post_full_id.match(/\d+/);
-    fetch(`/likes/${post_id}`)
+    const postFullId = evt.target.parentNode.id;
+    const postId = postFullId.match(/\d+/);
+    fetch(`/likes/${postId}`)
     .then(response => response.json())
     .then(post => {
         if (!post.likes) { post.likes = 0 }
@@ -202,65 +201,69 @@ function adjust_like(evt) {
     });
 }
 
-function adjust_follow(username) {
+function adjustFollow(username) {
 
     fetch(`/follow/${username}`)
     .then(response => response.json())
-    .then(user_data => {
-        const profile = user_data.profile;
-        const follow_button = document.querySelector('#follow-button');
-        const followers_element = document.querySelector('#followers');
+    .then(userData => {
+        const profile = userData.profile;
+        const followButton = document.querySelector('#follow-button');
+        const followersElement = document.querySelector('#followers');
         // Change what follow button says depending on if user is following
-        if (user_data.status === true) {
-            follow_button.innerHTML = 'Unfollow';
+        if (userData.status === true) {
+            followButton.innerHTML = 'Unfollow';
         } else {
-            follow_button.innerHTML = 'Follow';
+            followButton.innerHTML = 'Follow';
         }
         // Update number of followers
-        followers_element.innerHTML = `<p>Followers: ${profile.followers_count}</p>`;
+        followersElement.innerHTML = `<p>Followers: ${profile.followersCount}</p>`;
     });
 }
 
-function edit_post(evt) {
+function editPost(evt) {
 
     const post = evt.target.parentNode;
-    const post_full_id = post.id;
+    const postFullId = post.id;
     // Gets just the digits from the post id
-    const post_id = post_full_id.match(/\d+/)[0];
-    const post_content = post.querySelector('.content');
+    const postId = postFullId.match(/\d+/)[0];
+    const postContent = post.querySelector('.content');
     // Hides content of post, displays form instead
-    const content_text = post_content.innerText;
-    post_content.style.display = 'none';
+    const contentText = postContent.innerText;
+    postContent.style.display = 'none';
 
     // Finds corresponding form from hidden formset, displays it
     const formset = document.querySelectorAll('.post-form');
     formset.forEach(form => {
-        if (form.querySelector('p').querySelector('input').value === post_id) {
-            const corresponding_form = form;
-            corresponding_form.querySelector('textarea').value = content_text;
+        if (form.querySelector('p').querySelector('input').value === postId) {
+            const correspondingForm = form;
 
-            const newForm = document.createElement('FORM');
-            newForm.setAttribute('method', 'post');
-            newForm.setAttribute('action', '/');
-            newForm.setAttribute('id', 'edit-form');
+            const formContainer = document.createElement('FORM');
+            formContainer.setAttribute('method', 'post');
+            formContainer.setAttribute('action', '/');
+            formContainer.setAttribute('id', 'edit-form');
 
-            post_content.insertAdjacentElement('afterend', newForm);
-            newForm.appendChild(document.querySelector('#submission-data'));
-            newForm.appendChild(corresponding_form);
+            postContent.insertAdjacentElement('afterend', formContainer);
+            for (i = 0; i < formset.length; i++) {
+                formContainer.appendChild(form);
+            }
+            formContainer.appendChild(document.querySelector('#submission-data').cloneNode(true));
+            formContainer.appendChild(correspondingForm);
             const saveButton = document.createElement('INPUT');
             saveButton.setAttribute('id', 'submit-edit');
             saveButton.setAttribute('class', 'btn btn-primary');
             saveButton.setAttribute('type', 'submit');
             saveButton.setAttribute('value', 'Save');
 
-            newForm.appendChild(saveButton);
+            formContainer.appendChild(saveButton);
 
-            corresponding_form.style.display = 'block';
+            correspondingForm.style.display = 'block';
             post.querySelector('.edit').style.display = 'none';
+            // Sets the user's focus on the edit form and sets cursor to end of textarea
+            const formTextarea = correspondingForm.querySelector('textarea');
+            formTextarea.focus();
+            formTextarea.setSelectionRange(formTextarea.value.length, formTextarea.value.length);
         }
     });
-
-
 }
 
 // Go back and format variable names to be consistent
