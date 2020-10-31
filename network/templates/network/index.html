@@ -16,7 +16,7 @@
 
     <div id="posts-view">
         {% if user.is_authenticated %}
-            <form id="post-form-container" action="{% url 'index' %}" method="post">
+            <form id="post-form-container" action="{% url 'update' %}" method="post">
                 <div id="submission-data">
                     {% csrf_token %}
                     {{ post_formset.management_form }}

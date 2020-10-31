@@ -50,6 +50,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_HTTPONLY = True
+
 ROOT_URLCONF = 'project4.urls'
 
 TEMPLATES = [

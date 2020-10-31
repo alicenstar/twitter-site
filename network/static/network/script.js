@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('#profile')) {
         document.querySelector('#profile').addEventListener('click', evt => loadProfile(evt));
         document.querySelector('#following').addEventListener('click', () => loadPosts('following'));
+        document.querySelector('#post-form-container').addEventListener('submit', evt => createOrUpdate(evt));
     }
     document.querySelector('#all').addEventListener('click', () => loadPosts('all'));
 });
@@ -224,46 +225,107 @@ function editPost(evt) {
 
     const post = evt.target.parentNode;
     const postFullId = post.id;
+
+    // Hide edit button
+    post.querySelector('.edit').style.display = 'none';
     // Gets just the digits from the post id
     const postId = postFullId.match(/\d+/)[0];
     const postContent = post.querySelector('.content');
+
     // Hides content of post, displays form instead
-    const contentText = postContent.innerText;
+
     postContent.style.display = 'none';
+    const formContainer = document.createElement('FORM');
+    formContainer.setAttribute('method', 'post');
+    formContainer.setAttribute('action', '/post');
+    formContainer.setAttribute('id', 'edit-form');
+
+    postContent.insertAdjacentElement('afterend', formContainer);
+
+    const saveButton = document.createElement('INPUT');
+    saveButton.setAttribute('id', 'submit-edit');
+    saveButton.setAttribute('class', 'btn btn-primary');
+    saveButton.setAttribute('type', 'submit');
+    saveButton.setAttribute('value', 'Save');
 
     // Finds corresponding form from hidden formset, displays it
-    const formset = document.querySelectorAll('.post-form');
+    const formset = document.querySelector('#post-form-container').querySelectorAll('.post-form');
     formset.forEach(form => {
         if (form.querySelector('p').querySelector('input').value === postId) {
-            const correspondingForm = form;
+            // Make clone of corresponding post form
+            const correspondingForm = form.cloneNode(true);
 
-            const formContainer = document.createElement('FORM');
-            formContainer.setAttribute('method', 'post');
-            formContainer.setAttribute('action', '/');
-            formContainer.setAttribute('id', 'edit-form');
-
-            postContent.insertAdjacentElement('afterend', formContainer);
-            for (i = 0; i < formset.length; i++) {
-                formContainer.appendChild(form);
-            }
+            // Build a "new" edit form in the post
             formContainer.appendChild(document.querySelector('#submission-data').cloneNode(true));
             formContainer.appendChild(correspondingForm);
-            const saveButton = document.createElement('INPUT');
-            saveButton.setAttribute('id', 'submit-edit');
-            saveButton.setAttribute('class', 'btn btn-primary');
-            saveButton.setAttribute('type', 'submit');
-            saveButton.setAttribute('value', 'Save');
-
             formContainer.appendChild(saveButton);
 
             correspondingForm.style.display = 'block';
-            post.querySelector('.edit').style.display = 'none';
+
             // Sets the user's focus on the edit form and sets cursor to end of textarea
             const formTextarea = correspondingForm.querySelector('textarea');
             formTextarea.focus();
             formTextarea.setSelectionRange(formTextarea.value.length, formTextarea.value.length);
         }
     });
+    document.querySelector('#edit-form').addEventListener('submit', event => createOrUpdate(event));
 }
 
-// Go back and format variable names to be consistent
+function createOrUpdate(evt) {
+
+    evt.preventDefault();
+    const target = evt.target;
+    const data = {};
+    // Manually pass in the management form data
+    data['form-TOTAL_FORMS'] = target.querySelector('#id_form-TOTAL_FORMS').value;
+    data['form-INITIAL_FORMS'] = target.querySelector('#id_form-INITIAL_FORMS').value;
+    data['form-MIN_NUM_FORMS'] = target.querySelector('#id_form-MIN_NUM_FORMS').value;
+    data['form-MAX_NUM_FORMS'] = target.querySelector('#id_form-MAX_NUM_FORMS').value;
+
+    // If it's the edit button
+    if (evt.submitter.id == 'submit-edit') {
+        const contentId = target.querySelector('textarea').getAttribute('name');
+        const inputId = target.querySelector('textarea').nextSibling.getAttribute('name');
+        data[contentId] = target.querySelector('textarea').value;
+        data[inputId] = target.querySelector('textarea').nextSibling.value;
+    }
+ 
+    // If it's the new post button
+    if (evt.submitter.id == 'post-button') {
+        const newPostForm = document.querySelector('#new-post-form');
+        const contentId = newPostForm.querySelector('textarea').getAttribute('name');
+        const inputId = newPostForm.querySelector('textarea').nextSibling.getAttribute('name');
+        data[contentId] = newPostForm.querySelector('textarea').value;
+        data[inputId] = newPostForm.querySelector('textarea').nextSibling.value;
+    }
+
+    // Manually pass in the CSRF token
+    const token = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const request = new Request('/post', { headers: {'X-CSRFToken': token } });
+    fetch(request, {
+        method: 'POST',
+        mode: 'same-origin',
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(post => {
+        // Only if post is being editted, update the post dynamically on page
+        if (evt.submitter.id === 'submit-edit') {
+            // Remove the post edit form
+            // Get the current post element
+            const postContainer = target.parentNode;
+            // Update the original matching form with the new content and remove copied form
+            const formset = document.querySelector('#post-form-container').querySelectorAll('.post-form');
+            formset.forEach(form => {
+                if (target.querySelector('p').querySelector('input').value === form.querySelector('input').value) {
+                    form.querySelector('textarea').innerHTML = post.content;
+                    postContainer.querySelector('form').remove();
+                }
+            });
+            const postContent = postContainer.querySelector('.content');
+            postContent.style.display = 'block';
+            postContent.innerText = post.content;
+            postContainer.querySelector('.edit').style.display = 'block';
+        }
+    });
+}

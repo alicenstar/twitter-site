@@ -5,8 +5,9 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import IntegrityError
 from django.db.models import Count, OuterRef, Subquery
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import HttpResponse, render
 from django.urls import reverse
+import re
 
 from .models import User, Post, Like, Follow
 from .forms import PostFormSet
@@ -14,18 +15,36 @@ from .forms import PostFormSet
 
 def index(request):
 
-    # Saves new post or updates existing post
+    if request.method == 'GET':
+        return render(request, "network/index.html", {
+                "post_formset": PostFormSet()
+        })
+
+def create_or_update_post(request):
+
+    print(request.body)
+    data = json.loads(request.body)
+    print(data)
+    # Searches for the post ID to see if it's an existing post
+    # If it's an existing post, stores the post ID for object lookup
+    new = False
+    for key in data:
+        if re.search(r'form-\d+-id', key):
+            if not data[key]:
+                new = True
+            postId = data[key]
     if request.method == 'POST':
-        formset = PostFormSet(data=request.POST)
+        formset = PostFormSet(data=data, queryset=Post.objects.all())
         for form in formset:
             if form.has_changed() and form.is_valid():
                 instance = form.save(commit=False)
                 instance.user_id = request.user
                 instance.save()
-
-    return render(request, "network/index.html", {
-            "post_formset": PostFormSet(queryset=Post.objects.all())
-    })
+        if not new:
+            updated_post = Post.objects.get(id=postId)
+            return JsonResponse(updated_post.serialize(), safe=False)
+        else:
+            return JsonResponse({'message': 'Success'}, status=201)
 
 def get_posts(request, post_parameter):
 
