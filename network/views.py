@@ -1,5 +1,6 @@
 import json
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import IntegrityError
@@ -20,11 +21,10 @@ def index(request):
                 "post_formset": PostFormSet()
         })
 
+@login_required
 def create_or_update_post(request):
 
-    print(request.body)
     data = json.loads(request.body)
-    print(data)
     # Searches for the post ID to see if it's an existing post
     # If it's an existing post, stores the post ID for object lookup
     new = False
@@ -58,6 +58,11 @@ def get_posts(request, post_parameter):
         posts = Post.objects.filter(user_id__in=user_following
                                     ).order_by('-timestamp')
         serialize_data = [post.serialize() for post in posts]
+    # Else if parameter is a username
+    else:
+        user = User.objects.get(username=post_parameter)
+        posts = Post.objects.filter(user_id=user.id).order_by('-timestamp')
+        serialize_data = [post.serialize() for post in posts]
 
     return JsonResponse(serialize_data, safe=False)
 
@@ -65,16 +70,15 @@ def get_profile(request, username):
 
     if request.method == 'GET':
         user_profile = User.objects.get(username=username)
-        user_posts = Post.objects.filter(user_id=user_profile.id).order_by('-timestamp')
         serialize_profile = user_profile.serialize()
         # Use JavaScript naming conventions since it's passed to JS file
         response_data = {
             'profile': serialize_profile,
-            'posts': [post.serialize() for post in user_posts],
             'currentUser': request.user.id
         }
         return JsonResponse(response_data, safe=False)
 
+@login_required
 def adjust_likes(request, post_id):
 
     if request.user != 'AnonymousUser':
@@ -91,6 +95,7 @@ def adjust_likes(request, post_id):
         serialize_data = post.serialize()
         return JsonResponse(serialize_data, safe=False)
 
+@login_required
 def adjust_follow(request, username):
 
     if request.user != 'AnonymousUser':

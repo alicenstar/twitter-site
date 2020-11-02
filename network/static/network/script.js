@@ -35,9 +35,7 @@ function loadPosts(postFilter) {
         document.querySelector('#post-form-container').style.display = 'none';
     }
 
-    fetch(`/posts/${postFilter}`)
-    .then(response => response.json())
-    .then(posts => paginatePosts(posts));
+    fetchPosts(postFilter);
 }
 
 // Loads user profile
@@ -57,11 +55,10 @@ function loadProfile(evt) {
     .then(response => response.json())
     .then(userData => {
         const profile = userData.profile;
-        const posts = userData.posts;
         followCounts.innerHTML = `<p id="followers">Followers: ${profile.followersCount}</p>
                                     <p id="following">Following: ${profile.followingCount}</p>`;
         followButtonChecks(userData, username);
-        paginatePosts(posts);
+        fetchPosts(username);
     });
 }
 
@@ -95,8 +92,15 @@ function followButtonChecks(userData, username) {
     }
 }
 
+function fetchPosts(postFilter) {
+
+    fetch(`/posts/${postFilter}`)
+    .then(response => response.json())
+    .then(posts => paginatePosts(posts, postFilter));
+}
+
 // Creates the post divs and paginator
-function paginatePosts(posts) {
+function paginatePosts(posts, postFilter) {
     
     var paginator = {
         "numPages": 1,
@@ -112,16 +116,31 @@ function paginatePosts(posts) {
         paginator.pages[i] = posts.splice(0,10);
     }
     // Display first page of posts
-    createPostDivs(paginator.pages[0]);
+    createPostDivs(paginator.pages[paginator.pageIterator]);
 
     const paginatorElement = document.querySelector('#paginator');
     paginatorElement.innerHTML = `<button id="previous" class="btn btn-primary" type="button">Previous</button>
                             <p id="currentPage">Page ${paginator.currentPage}/${paginator.numPages}</p>
                             <button id="next" class="btn btn-primary" type="button">Next</button>`;
+    paginatorListeners(paginator, postFilter);
+    paginationDisplay(paginator);
+}
+
+function paginatorListeners(paginator, postFilter) {
 
     document.querySelector('#next').addEventListener('click', () => {
         paginator.pageIterator++;
         paginator.currentPage++;
+        // Update number of pages and also the post data in the pages
+        fetch(`/posts/${postFilter}`)
+        .then(response => response.json())
+        .then(posts => {
+            paginator.numPages = Math.ceil(posts.length / 10);
+            // Populate array of pages with posts
+            for (var i = 0; i < paginator.numPages; i++) {
+                paginator.pages[i] = posts.splice(0,10);
+            }
+        });
         createPostDivs(paginator.pages[paginator.pageIterator]);
         paginationDisplay(paginator);
         document.querySelector('#currentPage').innerHTML = `Page ${paginator.currentPage}/${paginator.numPages}`;
@@ -130,19 +149,28 @@ function paginatePosts(posts) {
     document.querySelector('#previous').addEventListener('click', () => {
         paginator.pageIterator--;
         paginator.currentPage--;
+        // Update number of pages and also the post data in the pages
+        fetch(`/posts/${postFilter}`)
+        .then(response => response.json())
+        .then(posts => {
+            paginator.numPages = Math.ceil(posts.length / 10);
+            // Populate array of pages with posts
+            for (var i = 0; i < paginator.numPages; i++) {
+                paginator.pages[i] = posts.splice(0,10);
+            }
+        });
         createPostDivs(paginator.pages[paginator.pageIterator]);
         paginationDisplay(paginator);
         document.querySelector('#currentPage').innerHTML = `Page ${paginator.currentPage}/${paginator.numPages}`
     });
-    paginationDisplay(paginator);
 }
 
 function paginationDisplay(paginator) {
 
-    // Checks if user is on first page
+    // Checks if user is on first page, hides previous button
     if (paginator.pageIterator === 0) { document.querySelector('#previous').style.visibility = 'hidden' }
     else { document.querySelector('#previous').style.visibility = 'visible' }
-    // Checks if there is a 'next' page
+    // Checks if user is on last page, hides next button
     if (!paginator.pages[paginator.pageIterator + 1]) { document.querySelector('#next').style.visibility = 'hidden' }
     else { document.querySelector('#next').style.visibility = 'visible' }
 
@@ -326,6 +354,13 @@ function createOrUpdate(evt) {
             postContent.style.display = 'block';
             postContent.innerText = post.content;
             postContainer.querySelector('.edit').style.display = 'block';
+        } else {
+            var postFilter = document.querySelector('#header').innerText.toLowerCase();
+            if (postFilter === 'all posts') {
+                postFilter = 'all';
+            }
+            target.querySelector('#new-post-form').querySelector('textarea').value = '';
+            fetchPosts(postFilter);
         }
     });
 }
