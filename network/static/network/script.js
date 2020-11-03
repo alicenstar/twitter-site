@@ -47,6 +47,9 @@ function loadProfile(evt) {
 
     // Display user profile view and hide others
     document.querySelector('#profile-view').style.display = 'block';
+    if (document.querySelector('#post-form-container')) {
+        document.querySelector('#post-form-container').style.display = 'none';
+    }
 
     // Clear profile view before populating
     const followCounts = document.querySelector('#follow-counts');
@@ -75,13 +78,9 @@ function followButtonChecks(userData, username) {
                 isFollowing = true;
             }
         });
-        // Set new post form to be hidden by default
-        document.querySelector('#post-form-container').style.display = 'none';
         // If the profile is the logged in user's profile, don't show follow button
-        // If the profile is the logged in user's profile, show the new post form
         if (userData.currentUser === profile.id) {
             followButton.style.display = 'none';
-            document.querySelector('#post-form-container').style.display = 'block';
         } else if (isFollowing === true) {
             followButton.innerHTML = 'Unfollow';
             followButton.addEventListener('click', () => adjustFollow(username));
@@ -213,16 +212,19 @@ function addListeners() {
         username.addEventListener('click', evt => loadProfile(evt));
     });
 
-    // Add listeners to edit buttons
-    const editButtons = document.querySelectorAll('.edit');
-    editButtons.forEach(button => {
-        button.addEventListener('click', evt => editPost(evt));
-    });
-    // Add listeners to hearts on each post
-    const likeHearts = document.querySelectorAll('.likes');
-    likeHearts.forEach(heart => {
-        heart.addEventListener('click', evt => adjustLike(evt));
-    });
+    // If user is logged in, add these listeners
+    if (document.querySelector('#profile')) {
+        // Add listeners to edit buttons
+        const editButtons = document.querySelectorAll('.edit');
+        editButtons.forEach(button => {
+            button.addEventListener('click', evt => editPost(evt));
+        });
+        // Add listeners to hearts on each post
+        const likeHearts = document.querySelectorAll('.likes');
+        likeHearts.forEach(heart => {
+            heart.addEventListener('click', evt => adjustLike(evt));
+        });
+    }
 }
 
 function adjustLike(evt) {
@@ -364,10 +366,11 @@ function createOrUpdate(evt) {
         } else {
             var postFilter = document.querySelector('#header').innerText.toLowerCase();
             if (postFilter === 'all posts') {
-                postFilter = 'all';
+                window.location.reload();
+                loadPosts('all');
+            } else {
+                window.location.reload();
             }
-            target.querySelector('#new-post-form').querySelector('textarea').value = '';
-            fetchPosts(postFilter);
         }
     });
 }

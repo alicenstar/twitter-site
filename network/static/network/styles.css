@@ -1,11 +1,15 @@
 .body {
     padding: 16px;
-    margin: 0;
-    width: 50%;
+    margin: auto;
+    max-width: 600px;
 }
 
 #profile {
     font-weight: bold;
+}
+
+#header {
+    text-align: center;
 }
 
 /* NEW POST FORM STYLING */
