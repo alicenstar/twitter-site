@@ -129,39 +129,43 @@ function paginatePosts(posts, postFilter) {
 function paginatorListeners(paginator, postFilter) {
 
     document.querySelector('#next').addEventListener('click', () => {
-        paginator.pageIterator++;
-        paginator.currentPage++;
+
         // Update number of pages and also the post data in the pages
         fetch(`/posts/${postFilter}`)
         .then(response => response.json())
         .then(posts => {
+            paginator.pageIterator++;
+            paginator.currentPage++;
             paginator.numPages = Math.ceil(posts.length / 10);
             // Populate array of pages with posts
             for (var i = 0; i < paginator.numPages; i++) {
                 paginator.pages[i] = posts.splice(0,10);
             }
+
+            createPostDivs(paginator.pages[paginator.pageIterator]);
+            paginationDisplay(paginator);
+            document.querySelector('#currentPage').innerHTML = `Page ${paginator.currentPage}/${paginator.numPages}`;
         });
-        createPostDivs(paginator.pages[paginator.pageIterator]);
-        paginationDisplay(paginator);
-        document.querySelector('#currentPage').innerHTML = `Page ${paginator.currentPage}/${paginator.numPages}`;
-    
     });
     document.querySelector('#previous').addEventListener('click', () => {
-        paginator.pageIterator--;
-        paginator.currentPage--;
+
         // Update number of pages and also the post data in the pages
         fetch(`/posts/${postFilter}`)
         .then(response => response.json())
         .then(posts => {
+            paginator.pageIterator--;
+            paginator.currentPage--;
             paginator.numPages = Math.ceil(posts.length / 10);
             // Populate array of pages with posts
             for (var i = 0; i < paginator.numPages; i++) {
                 paginator.pages[i] = posts.splice(0,10);
             }
+
+            createPostDivs(paginator.pages[paginator.pageIterator]);
+            paginationDisplay(paginator);
+            document.querySelector('#currentPage').innerHTML = `Page ${paginator.currentPage}/${paginator.numPages}`
         });
-        createPostDivs(paginator.pages[paginator.pageIterator]);
-        paginationDisplay(paginator);
-        document.querySelector('#currentPage').innerHTML = `Page ${paginator.currentPage}/${paginator.numPages}`
+
     });
 }
 
@@ -197,15 +201,18 @@ function addListeners() {
     // Add listeners to username on each post
     const postUsernames = document.querySelectorAll('.username');
     postUsernames.forEach(username => {
-        username.addEventListener('click', evt => loadProfile(evt));
-        // Adds 'edit' buttons to logged in user's posts
+        // Checks if post username is same as logged in user and adds edit button if it is
         if (document.querySelector('#profile')) {
             if (username.innerText === document.querySelector('#profile').innerText) {
-                let post = username.parentNode;
-                post.innerHTML += `<p class="edit">Edit</p>`;
+                const edit = document.createElement('P');
+                edit.setAttribute('class', 'edit');
+                edit.innerText = 'Edit';
+                username.parentNode.appendChild(edit);
             }
         }
+        username.addEventListener('click', evt => loadProfile(evt));
     });
+
     // Add listeners to edit buttons
     const editButtons = document.querySelectorAll('.edit');
     editButtons.forEach(button => {
