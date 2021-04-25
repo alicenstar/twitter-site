@@ -1,5 +1,5 @@
 django
-django-heroku
 gunicorn
+django-heroku
 pip
 sqlparse
