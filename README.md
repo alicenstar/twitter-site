@@ -9,6 +9,6 @@ Site hosted [here](https://twitter-site.herokuapp.com/) using Heroku!
   
 ## Tech Stack
 
-**Client:** Python, Django, JavaScript, CSS
+**Client:** Python, Django, JavaScript, CSS, Whitenoise
 
-**Server:** Whitenoise, Postgres
+**Server:** Postgres
