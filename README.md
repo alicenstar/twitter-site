@@ -1,6 +1,14 @@
-# A Twitter-like site
 
-This is a site I built with Python/Django. On it, users can create accounts and create, edit, and delete posts. Complete with pagination, 'likes', and the ability to follow/unfollow other users.
+# Social Media Post Site
 
-# Demo
-You can find a demo of it [here](https://youtu.be/OW8n-k8komY)!
+Twitter-like site built with Python and Django, where users can create accounts and create, edit, and delete posts. Complete with pagination, 'likes', and the ability to follow/unfollow other users.
+
+## Demo
+
+Site hosted [here](https://twitter-site.herokuapp.com/) using Heroku!
+  
+## Tech Stack
+
+**Client:** Python, Django, JavaScript, CSS
+
+**Server:** Whitenoise, Postgres
