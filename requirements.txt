@@ -3,3 +3,5 @@ gunicorn
 django-heroku
 pip
 sqlparse
+dj-database-url
+psycopg2
