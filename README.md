@@ -1,7 +1,7 @@
 
 # Social Media Post Site
 
-Twitter-like site built with Python and Django, where users can create accounts and create, edit, and delete posts. Complete with pagination, 'likes', and the ability to follow/unfollow other users.
+Twitter-like single-page application where users can create accounts and create, edit, and delete posts. Complete with pagination, 'likes', and the ability to follow/unfollow other users.
 
 ## Demo
 
